@@ -1,24 +1,9 @@
-# ntfs_file_streams
+# cryptar
 
-A tool to list, create, copy, delete, show, write and archive NTFS files streams.
+a part of `ntfs_file_streams` which handles tar and untar functionality
 
-Windows 10
-
-Visual Studio 2017
+Should be a cmake project and be cross-platform in the end
 
 
-Links:
-
-About NTFS streams:
-https://docs.microsoft.com/en-us/windows/win32/fileio/file-streams
-
-Some inspiration is got from:
-https://docs.microsoft.com/en-us/sysinternals/downloads/streams
-
-Working with streams in Windows command line (rus):
-https://habr.com/ru/post/46935/
-
-Working with streams with WinAPI:
-http://www.flexhex.com/docs/articles/alternate-streams.phtml
-https://habr.com/ru/post/46990/   (rus)
+Visual Studio 2022
 
