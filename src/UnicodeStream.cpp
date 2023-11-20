@@ -31,7 +31,7 @@ enum Format { Multibyte, LitteEndian, BigEndian, Utf8 };
 //  byte 1111111x alone not valid
 
 template <class GetCh>
-std::experimental::generator<WCHAR> ConvertUtf8(GetCh in)
+Coro::generator<WCHAR> ConvertUtf8(GetCh in)
 {
 	static char arrMasks[] = { 0, 0b0001'1111, 0b0000'1111, 0b0000'0111, 0b0000'0011, 0b0000'0001 };
 	bool bUtf8 = false;
@@ -54,7 +54,7 @@ std::experimental::generator<WCHAR> ConvertUtf8(GetCh in)
 		int nCount =
 			((uc & 0b1110'0000) == 0b1100'0000) ? 1 : ((uc & 0b1111'0000) == 0b1110'0000) ? 2 : ((uc & 0b1111'1000) == 0b1111'0000) ? 3 : ((uc & 0b1111'1100) == 0b1111'1000) ? 4 : ((uc & 0b1111'1110) == 0b1111'1100) ? 5 : -1; // this is covered by "(uc & 0b1111'1110) == 0b1111'1110"
 		if (nCount == -1) // should not happen
-			return;
+			break;
 		uint32_t nPoint = uc & arrMasks[nCount];
 		while (nCount--)
 		{
@@ -80,23 +80,23 @@ std::experimental::generator<WCHAR> ConvertUtf8(GetCh in)
 }
 
 template <class GetCh>
-std::experimental::generator<WCHAR> ConvertPair(GetCh in, bool bLE)
+Coro::generator<WCHAR> ConvertPair(GetCh in, bool bLE)
 {
 	while (true)
 	{
 		int b1 = in();
 		if (b1 == -1)
-			return;
+			break;
 		int b2 = in();
 		if (b2 == -1)
-			return;
+			break;
 		co_yield bLE ? wchar_t((b2 << 8) | b1) : wchar_t((b1 << 8) | b2);
 	}
 }
 
 
 template <class GetCh>
-std::experimental::generator<WCHAR> ConvertMultibyte(GetCh in)
+Coro::generator<WCHAR> ConvertMultibyte(GetCh in)
 {
 	// accumulate entire string and convert it using current system codepage
 	std::string accum;
@@ -114,78 +114,78 @@ std::experimental::generator<WCHAR> ConvertMultibyte(GetCh in)
 			accum = "";
 		}
 		if (ich == -1)
-			return;
+			break;
 	}
 }
 
-std::experimental::generator<std::wstring> GetStrings(CharStream *pStream)
+Coro::generator<std::wstring> GetStrings(CharStream* pStream)
 {
 	char buf[2000];
-	int count = pStream->Read(buf, (int) sizeof(buf));
-	if (!count)
-		return;
-
-	int pos = 0;
-	Format fmt = Multibyte;
-	if (count >= 2 && (WORD&)buf[0] == 0xFEFF) { // FF FE  - BOM LittleEndian, usual, sampe of space "20 00"
-		pos = 2;
-		fmt = LitteEndian;
-	}
-	else if (count >= 2 && (WORD&)buf[0] == 0xFFFE) { // FE FF  - BOM BigEndian, unusual, sample of space "00 20"
-		pos = 2;
-		fmt = BigEndian;
-	}
-	else if (count >= 3 && ((DWORD&)buf[0] & 0xFFFFFF) == 0xBFBBEF) { // EF BB BF - BOM utf8
-		pos = 3;
-		fmt = Utf8;
-	}
-	else if (IsUtf8(buf, count, count < 1000)) {
-		fmt = Utf8;
-	}
-	else if (IsUnicodeLE(buf, count)) {
-		fmt = LitteEndian;
-	}
-	else if (IsUnicodeBE(buf, count)) {
-		fmt = BigEndian;
-	}
-
-	// pusher provides input stream, one char at once, -1 means end of data
-	auto pusher = [&pos, &buf, &count, pStream]() -> int {
-		if (pos == count) {
-			pos = 0;
-			count = pStream->Read(buf, (int)sizeof(buf));
+	int count = pStream->Read(buf, (int)sizeof(buf));
+	if (count)
+	{
+		int pos = 0;
+		Format fmt = Multibyte;
+		if (count >= 2 && (WORD&)buf[0] == 0xFEFF) { // FF FE  - BOM LittleEndian, usual, sampe of space "20 00"
+			pos = 2;
+			fmt = LitteEndian;
 		}
-		if (pos < count)
-			return 0xFF & (int)buf[pos++];
-		return -1;
-	};
-
-	std::wstring str;
-	str.reserve(1000);
-	std::experimental::generator<WCHAR> gen;
-	if (fmt == Utf8)
-		gen = ConvertUtf8(pusher);
-	else if (fmt == LitteEndian || fmt == BigEndian)
-		gen = ConvertPair(pusher, fmt == LitteEndian);
-	else
-		gen = ConvertMultibyte(pusher);
-
-	wchar_t prev = 0;
-	for (wchar_t ch : gen) {
-		bool pair = (prev ^ ch) == ('\r' ^ '\n');
-		prev = pair ? 0 : ch;
-		bool rn = ch == '\r' || ch == '\n'; // carriage-return, line-feed
-		if (pair && rn)  // consider cr+lf or lf+cr as 1 symbol
-			continue;
-		if (rn || ch == 0x2028 || ch == 0x2029 || ch == 0x85) // line-separator, paragraph-separator, next-line
-		{
-			str += '\n';
-			co_yield str;
-			str = L"";
+		else if (count >= 2 && (WORD&)buf[0] == 0xFFFE) { // FE FF  - BOM BigEndian, unusual, sample of space "00 20"
+			pos = 2;
+			fmt = BigEndian;
 		}
+		else if (count >= 3 && ((DWORD&)buf[0] & 0xFFFFFF) == 0xBFBBEF) { // EF BB BF - BOM utf8
+			pos = 3;
+			fmt = Utf8;
+		}
+		else if (IsUtf8(buf, count, count < 1000)) {
+			fmt = Utf8;
+		}
+		else if (IsUnicodeLE(buf, count)) {
+			fmt = LitteEndian;
+		}
+		else if (IsUnicodeBE(buf, count)) {
+			fmt = BigEndian;
+		}
+
+		// pusher provides input stream, one char at once, -1 means end of data
+		auto pusher = [&pos, &buf, &count, pStream]() -> int {
+			if (pos == count) {
+				pos = 0;
+				count = pStream->Read(buf, (int)sizeof(buf));
+			}
+			if (pos < count)
+				return 0xFF & (int)buf[pos++];
+			return -1;
+			};
+
+		std::wstring str;
+		str.reserve(1000);
+		Coro::generator<WCHAR> gen;
+		if (fmt == Utf8)
+			gen = ConvertUtf8(pusher);
+		else if (fmt == LitteEndian || fmt == BigEndian)
+			gen = ConvertPair(pusher, fmt == LitteEndian);
 		else
-			str += ch;
+			gen = ConvertMultibyte(pusher);
+
+		wchar_t prev = 0;
+		for (wchar_t ch : gen) {
+			bool pair = (prev ^ ch) == ('\r' ^ '\n');
+			prev = pair ? 0 : ch;
+			bool rn = ch == '\r' || ch == '\n'; // carriage-return, line-feed
+			if (pair && rn)  // consider cr+lf or lf+cr as 1 symbol
+				continue;
+			if (rn || ch == 0x2028 || ch == 0x2029 || ch == 0x85) // line-separator, paragraph-separator, next-line
+			{
+				str += '\n';
+				co_yield str;
+				str = L"";
+			}
+			else
+				str += ch;
+		}
+		if (!str.empty())
+			co_yield str;
 	}
-	if (!str.empty())
-		co_yield str;
 }

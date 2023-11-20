@@ -73,7 +73,7 @@ namespace
 
 
 	template<class T>
-	wostream& operator<<(wostream &o, const vector<T>& v)
+	wostream& operator<<(wostream& o, const vector<T>& v)
 	{
 		o << L"{ ";
 		for (auto& it : v)
@@ -123,7 +123,7 @@ namespace
 		}
 		virtual bool IsMyFile(const filesystem::path& path, bool is_stream)
 		{
-			if(write_to_stream != is_stream)
+			if (write_to_stream != is_stream)
 				return false;
 			if (name == path)
 				return true;
@@ -133,7 +133,7 @@ namespace
 		virtual void Write(const void* buf, DWORD size) override
 		{
 			if (!fs.IsOpen()) {
-				if(!fs.Open(name.c_str(), true, true))
+				if (!fs.Open(name.c_str(), true, true))
 					throw MyException{ L"Failed to create '<path>': <err>", name.c_str(), GetLastError() };
 				// do not write signature
 				//if (fs.Write("star", 4) != 4)
@@ -202,7 +202,7 @@ namespace
 	{
 	public:
 		TarWriterAES(unique_ptr<ITarWriter>&& dst, const uint8_t* key16, const uint8_t* init_iv = nullptr)
-			: dst( move(dst) ), aes(key16, init_iv)
+			: dst(move(dst)), aes(key16, init_iv)
 		{
 			if (init_iv)
 			{
@@ -251,7 +251,7 @@ namespace
 	class TarWriterShaker : public ITarWriter
 	{
 	public:
-		TarWriterShaker(unique_ptr<ITarWriter>&& dst, const uint8_t *key20)
+		TarWriterShaker(unique_ptr<ITarWriter>&& dst, const uint8_t* key20)
 			: dst(move(dst)), shaker(key20)
 		{
 		}
@@ -310,10 +310,10 @@ namespace
 
 	class FileReader : public ITarReader
 	{
-		FileSimple &fs;
+		FileSimple& fs;
 		const wchar_t* name;
 	public:
-		FileReader(FileSimple &fs, const wchar_t* name) : fs(fs), name(name) {}
+		FileReader(FileSimple& fs, const wchar_t* name) : fs(fs), name(name) {}
 		virtual void Read(void* buf, DWORD size) override
 		{
 			uint8_t* ptr = (uint8_t*)buf;
@@ -333,7 +333,7 @@ namespace
 				// size > 0
 				data_read = 0;
 				data_count = fs.Read(data, sizeof(data));
-				if(!data_count)
+				if (!data_count)
 					throw MyException{ L"Failed to read '<path>': <err>", name, GetLastError() };
 			}
 		}
@@ -347,7 +347,7 @@ namespace
 	{
 	public:
 		TarReaderAES(unique_ptr<ITarReader>&& src, const uint8_t* key16, bool read_iv)
-			: src( move(src) ), aes(key16), read_iv(read_iv)
+			: src(move(src)), aes(key16), read_iv(read_iv)
 		{
 		}
 		virtual void Read(void* buf, DWORD size) override
@@ -386,7 +386,7 @@ namespace
 	class TarReaderShaker : public ITarReader
 	{
 	public:
-		TarReaderShaker(unique_ptr<ITarReader>&& src, const uint8_t *key20)
+		TarReaderShaker(unique_ptr<ITarReader>&& src, const uint8_t* key20)
 			: src(move(src)), shaker(key20)
 		{
 		}
@@ -419,18 +419,18 @@ namespace
 
 }
 
-static const char BeginDir    = 'D'; // DirItem info, files, EndDir
-static const char BeginFile   = 'F'; // DirItem info, data, streams, EndFile
+static const char BeginDir = 'D'; // DirItem info, files, EndDir
+static const char BeginFile = 'F'; // DirItem info, data, streams, EndFile
 static const char BeginStream = 'S'; // DirItem info, data
-static const char EndFile     = 'f';
-static const char EndDir      = 'd';
-static const char EndArchive  = 'a';
+static const char EndFile = 'f';
+static const char EndDir = 'd';
+static const char EndArchive = 'a';
 
-void WriteTarDirectory(ITarWriter * writer, const DirItem& item, const vector<wstring>& exclude, const filesystem::path& rel_path, const wstring& prefix);
-void WriteTarFile(ITarWriter * writer, const DirItem& item, const vector<wstring>& exclude, const filesystem::path& rel_path, const wstring& prefix);
-void WriteTarStream(ITarWriter * writer, const DirItem& item, const filesystem::path& rel_path, const wstring& prefix);
+void WriteTarDirectory(ITarWriter* writer, const DirItem& item, const vector<wstring>& exclude, const filesystem::path& rel_path, const wstring& prefix);
+void WriteTarFile(ITarWriter* writer, const DirItem& item, const vector<wstring>& exclude, const filesystem::path& rel_path, const wstring& prefix);
+void WriteTarStream(ITarWriter* writer, const DirItem& item, const filesystem::path& rel_path, const wstring& prefix);
 
-void TarFiles(ITarWriter * writer, experimental::generator<DirItem>&& items, const vector<wstring>& exclude,
+void TarFiles(ITarWriter* writer, Coro::generator<DirItem>&& items, const vector<wstring>& exclude,
 	const filesystem::path& rel_path, const wstring& prefix)
 {
 	for (auto& it : items)
@@ -452,13 +452,13 @@ void TarFiles(ITarWriter * writer, experimental::generator<DirItem>&& items, con
 			// if filename is given in command line and does not exist or just deleted after being listed
 			ConsoleColor cc(FOREGROUND_RED);
 			wcout << prefix << L"* " << it.name.c_str() << L"  *** not found *** " << endl;
-			}
-			break;
+		}
+							 break;
 		}
 	}
 }
 
-void WriteDirItem(ITarWriter * writer, const DirItem& di)
+void WriteDirItem(ITarWriter* writer, const DirItem& di)
 {
 	switch (di.type) {
 	case DirItem::Dir:
@@ -477,13 +477,13 @@ void WriteDirItem(ITarWriter * writer, const DirItem& di)
 	default: return;
 	}
 
-	std::string name_utf8 = ToChar(di.name.filename().c_str(), CP_UTF8); // CP_ACP, 
+	std::string name_utf8 = ToChar(di.name.filename().c_str(), CP_UTF8); // CP_ACP,
 	WORD wlen = (WORD)name_utf8.size();
 	writer->Write(wlen);
 	writer->Write(name_utf8.c_str(), wlen);
 }
 
-void WriteData(ITarWriter * writer, FileSimple& fs, ULONGLONG total, const filesystem::path& src)
+void WriteData(ITarWriter* writer, FileSimple& fs, ULONGLONG total, const filesystem::path& src)
 {
 	while (total != 0)
 	{
@@ -513,24 +513,24 @@ void PrintFileData(const DirItem& item, const filesystem::path& rel_path, const 
 	wcout << prefix << sign << item.name.filename().c_str();
 	//wcout << prefix << sign << item.name.c_str();
 	//wcout << prefix << sign << rel_path << L"   " << item.name.filename().c_str();
-	if(item.type != DirItem::Dir)
+	if (item.type != DirItem::Dir)
 		wcout << L"   " << item.size;
 	wcout << endl;
 }
 
-void WriteTarDirectory(ITarWriter * writer, const DirItem& item, const vector<wstring>& exclude,
+void WriteTarDirectory(ITarWriter* writer, const DirItem& item, const vector<wstring>& exclude,
 	const filesystem::path& rel_path, const wstring& prefix)
 {
 	PrintFileData(item, rel_path, prefix);
 	WriteDirItem(writer, item);
-//	TarFiles(writer, directory_items(item.name), exclude, rel_path / item.name.filename(), prefix + L"  ");
+	//	TarFiles(writer, directory_items(item.name), exclude, rel_path / item.name.filename(), prefix + L"  ");
 	TarFiles(writer, get_files(item.name), exclude, rel_path / item.name.filename(), prefix + L"  ");
 	//wcout << L"end " << item.c_str() << endl;
 	writer->Write(EndDir);
 }
 
 
-void WriteTarFile(ITarWriter * writer, const DirItem& item, const vector<wstring>& exclude, const filesystem::path& rel_path, const wstring& prefix)
+void WriteTarFile(ITarWriter* writer, const DirItem& item, const vector<wstring>& exclude, const filesystem::path& rel_path, const wstring& prefix)
 {
 	if (writer->IsMyFile(item.name, false)) // do not add tar itself to the tar
 		return;
@@ -560,12 +560,12 @@ wstring CorrectDirStreamName(const filesystem::path& str_path)
 	// ex1\..\:dirstr.tx3 is valid
 	// ex1\..:dirstr.tx4 is invalid
 	auto ix = fn.find(L"\\:");
-	if (ix != wstring::npos && !(ix > 0 && fn[ix-1] == '.')) // ".\\:" is ok, "\\:" must be replaced
+	if (ix != wstring::npos && !(ix > 0 && fn[ix - 1] == '.')) // ".\\:" is ok, "\\:" must be replaced
 		fn.erase(ix, 1);
 	return fn;
 }
 
-void WriteTarStream(ITarWriter * writer, const DirItem& item, const filesystem::path& rel_path, const wstring& prefix)
+void WriteTarStream(ITarWriter* writer, const DirItem& item, const filesystem::path& rel_path, const wstring& prefix)
 {
 	if (writer->IsMyFile(item.name, true)) // do not add tar itself to the tar
 		return;
@@ -594,7 +594,7 @@ array<uint8_t, 16> digest_to_key(const array<uint8_t, 20>& digest)
 
 
 
-int Tar(int argc, TCHAR **argv)
+int Tar(int argc, TCHAR** argv)
 {
 	if (argc < 3 || _tcscmp(argv[2], L"/?") == 0)
 		return ShowHelpTar(filesystem::path(argv[0]).filename());
@@ -611,8 +611,8 @@ int Tar(int argc, TCHAR **argv)
 		wstring_view param(argv[n]);
 		if (param == L"/t")
 			test = true;
-//		else if (starts_with(param, L"/b:"))
-//			part_size = ReadSize(param.substr(3));
+		//		else if (starts_with(param, L"/b:"))
+		//			part_size = ReadSize(param.substr(3));
 		else if (starts_with(param, L"/p:"))
 			pass = param.substr(3);
 		else if (starts_with(param, L"/e:"))
@@ -632,9 +632,9 @@ int Tar(int argc, TCHAR **argv)
 		tarname.replace_extension(L".star");
 
 	wcout << L"Writing " << tarname.c_str();
-	if(test)
+	if (test)
 		wcout << L", test";
-	if(part_size)
+	if (part_size)
 		wcout << L", block size=" << part_size;
 	if (!pass.empty())
 		wcout << L", pass=" << pass;
@@ -647,14 +647,14 @@ int Tar(int argc, TCHAR **argv)
 	wcout << endl << endl;
 
 	auto gen = items.empty() ?
-		get_files(filesystem::current_path()) : 
+		get_files(filesystem::current_path()) :
 		get_files_multi(items);
 
 	unique_ptr<ITarWriter> writer(
 		test ? (ITarWriter*)new TarWriterTest() :
-		(ITarWriter*)new TarWriterFiles(tarname, part_size) );
+		(ITarWriter*)new TarWriterFiles(tarname, part_size));
 
-	ITarWriter * end_writer = writer.get();
+	ITarWriter* end_writer = writer.get();
 
 	if (!test)
 		writer = unique_ptr<ITarWriter>(new TarWriterBuffer(move(writer)));
@@ -663,7 +663,7 @@ int Tar(int argc, TCHAR **argv)
 		vector<wstring> pw = split(pass, ',');
 		for (int i = (int)pw.size() - 1; i >= 0; --i) {
 			string utf8 = ToChar(pw[i], CP_UTF8);
-			array<uint8_t, 20> digest = sha1_digest(utf8.data(), (unsigned int) utf8.size());
+			array<uint8_t, 20> digest = sha1_digest(utf8.data(), (unsigned int)utf8.size());
 			unique_ptr<ITarWriter> dst = move(writer);
 			if (i & 1)
 				writer = unique_ptr<ITarWriter>(new TarWriterShaker(move(dst), digest.data()));
@@ -704,7 +704,7 @@ void EnsureDirectoryExists(const filesystem::path& dir)
 {
 	if (!filesystem::exists(dir))
 		filesystem::create_directories(dir);
-	else if(!filesystem::is_directory(dir))
+	else if (!filesystem::is_directory(dir))
 		throw MyException{ L"Path is not a directory: '<path>'", dir.c_str(), 0 };
 }
 
@@ -775,11 +775,11 @@ bool ExtractItem(ITarReader* reader, const Options& options, const filesystem::p
 
 	WORD wlen;
 	reader->Read(wlen);
-	if(wlen > 500)
+	if (wlen > 500)
 		throw MyException{ L"Invalid tar file format or wrong password", L"", 0 };
 	std::string name_utf8(size_t(wlen), '\0');
 	reader->Read(name_utf8.data(), wlen);
-	if(!IsUtf8(name_utf8.data(), wlen, true))
+	if (!IsUtf8(name_utf8.data(), wlen, true))
 		throw MyException{ L"Invalid tar file format or wrong password", L"", 0 };
 
 	wstring name = ToWideChar(name_utf8, CP_UTF8);
@@ -804,7 +804,7 @@ bool ExtractItem(ITarReader* reader, const Options& options, const filesystem::p
 			EnsureDirectoryExists(di.name);
 		while (ExtractItem(reader, options, di.name, next_prefix)) {}   // write all streams
 		break;
-		}
+	}
 	case DirItem::File: {
 		bool written = WriteTo(di.name.c_str(), reader, di.size, options, prefix);
 		while (ExtractItem(reader, options, dest, prefix)) {}   // write all streams
@@ -827,7 +827,7 @@ bool ExtractItem(ITarReader* reader, const Options& options, const filesystem::p
 			}
 		}
 		break;
-		}
+	}
 	case DirItem::Stream:
 		WriteTo(CorrectDirStreamName(di.name).c_str(), reader, di.size, options, prefix);
 		break;
@@ -836,7 +836,7 @@ bool ExtractItem(ITarReader* reader, const Options& options, const filesystem::p
 }
 
 
-int Untar(int argc, TCHAR **argv)
+int Untar(int argc, TCHAR** argv)
 {
 	if (argc < 3 || _tcscmp(argv[2], L"/?") == 0)
 		return ShowHelpUntar(filesystem::path(argv[0]).filename());
@@ -891,13 +891,13 @@ int Untar(int argc, TCHAR **argv)
 	if (!options.test)
 		EnsureDirectoryExists(dest_dir);
 
-	unique_ptr<ITarReader> reader(new FileReader(fs, tarname.c_str()) );
+	unique_ptr<ITarReader> reader(new FileReader(fs, tarname.c_str()));
 
 	if (!pass.empty()) {
 		vector<wstring> pw = split(pass, ',');
 		for (int i = (int)pw.size() - 1; i >= 0; --i) {
 			string utf8 = ToChar(pw[i], CP_UTF8);
-			array<uint8_t, 20> digest = sha1_digest(utf8.data(), (unsigned int) utf8.size());
+			array<uint8_t, 20> digest = sha1_digest(utf8.data(), (unsigned int)utf8.size());
 			unique_ptr<ITarReader> src = move(reader);
 			if (i & 1)
 				reader = unique_ptr<ITarReader>(new TarReaderShaker(move(src), digest.data()));

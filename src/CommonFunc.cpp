@@ -94,7 +94,7 @@ bool mask_match(const wchar_t* str, const wchar_t* mask)
 	return *str == '\0';
 }
 
-bool mask_match(const wchar_t* str, const vector<wstring> &masks)
+bool mask_match(const wchar_t* str, const vector<wstring>& masks)
 {
 	for (auto& it : masks)
 		if (mask_match(str, it.c_str()))
@@ -117,7 +117,7 @@ bool is_stream_name(const wchar_t* entry)
 }
 
 
-experimental::generator<DirItem> get_streams(filesystem::path entry, const wchar_t * sep)
+Coro::generator<DirItem> get_streams(filesystem::path entry, const wchar_t* sep)
 {
 	// Enumerate file's streams and print their sizes and names
 	WIN32_FIND_STREAM_DATA fsd;
@@ -135,7 +135,7 @@ experimental::generator<DirItem> get_streams(filesystem::path entry, const wchar
 		::FindClose(hFind);
 }
 
-std::experimental::generator<DirItem> get_files(std::filesystem::path path)
+Coro::generator<DirItem> get_files(std::filesystem::path path)
 {
 	for (auto& dir_stream : get_streams(path, L"\\")) // stream for directory itself
 		co_yield dir_stream;
@@ -156,7 +156,7 @@ std::experimental::generator<DirItem> get_files(std::filesystem::path path)
 	}
 }
 
-experimental::generator<DirItem> directory_items(filesystem::path path)
+Coro::generator<DirItem> directory_items(filesystem::path path)
 {
 	for (auto& dir_stream : get_streams(path, L"\\")) // stream for directory itself
 		co_yield dir_stream;
@@ -175,7 +175,7 @@ experimental::generator<DirItem> directory_items(filesystem::path path)
 	}
 }
 
-std::experimental::generator<DirItem> get_files_multi(const std::vector<filesystem::path>& items)
+Coro::generator<DirItem> get_files_multi(const std::vector<filesystem::path>& items)
 {
 	for (auto& p : items)
 	{

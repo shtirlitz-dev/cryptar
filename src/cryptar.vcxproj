@@ -147,6 +147,7 @@
     <ClInclude Include="aes.h" />
     <ClInclude Include="CommonFunc.h" />
     <ClInclude Include="ConsoleColor.h" />
+    <ClInclude Include="CoroGenerator.h" />
     <ClInclude Include="FileSimple.h" />
     <ClInclude Include="ntfs_streams.h" />
     <ClInclude Include="pch.h" />

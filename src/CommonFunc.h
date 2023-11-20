@@ -19,9 +19,10 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include <coroutine>
-//#include <experimental/generator>
 #include <filesystem>
+
+#include "CoroGenerator.h"
+
 
 std::wstring_view RemoveAtEnd(std::wstring_view str, std::wstring_view end);
 std::wstring FileSizeStr(ULONGLONG fsize);
@@ -40,7 +41,7 @@ struct DirItem
 };
 
 bool is_stream_name(const wchar_t* entry);
-std::experimental::generator<DirItem> get_streams(std::filesystem::path entry, const wchar_t* sep);
-std::experimental::generator<DirItem> get_files(std::filesystem::path path); // WinAPI
-std::experimental::generator<DirItem> directory_items(std::filesystem::path path); // std::filesystem
-std::experimental::generator<DirItem> get_files_multi(const std::vector<std::filesystem::path>& items);
+Coro::generator<DirItem> get_streams(std::filesystem::path entry, const wchar_t* sep);
+Coro::generator<DirItem> get_files(std::filesystem::path path); // WinAPI
+Coro::generator<DirItem> directory_items(std::filesystem::path path); // std::filesystem
+Coro::generator<DirItem> get_files_multi(const std::vector<std::filesystem::path>& items);

@@ -17,8 +17,8 @@
 
 #include <string>
 #include <optional>
-#include <experimental/coroutine>
-#include <experimental/generator>
+
+#include "CoroGenerator.h"
 
 class CharStream
 {
@@ -26,4 +26,4 @@ public:
 	virtual int Read(char* buf, int count) = 0;
 };
 
-std::experimental::generator<std::wstring> GetStrings(CharStream *pStream);
+Coro::generator<std::wstring> GetStrings(CharStream* pStream);
