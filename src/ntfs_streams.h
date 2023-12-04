@@ -28,9 +28,3 @@ int ShowListFiles(const wchar_t* dir, bool all);
 
 std::wstring GetErrorMessage(DWORD dw);
 
-struct MyException
-{
-	std::wstring msg;   // can contain "<path>" and "<err>" for inserting path and error description
-	std::wstring path;
-	DWORD dwError;
-};

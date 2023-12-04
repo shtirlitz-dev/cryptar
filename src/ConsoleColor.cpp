@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "ConsoleColor.h"
 
-
+#if 0
 ConsoleColor::ConsoleColor(WORD wAttributes, DWORD nStdHandle)
 {
 	hStdOut = GetStdHandle(nStdHandle);
@@ -24,6 +24,8 @@ void ConsoleColor::SetColor(WORD wAttributes) // FOREGROUND_RED | FOREGROUND_INT
 {
 	if (wAttributes == NoColor)
 		wAttributes = wDefault;
-	if(hStdOut != INVALID_HANDLE_VALUE && wAttributes != NoColor)
+	if (hStdOut != INVALID_HANDLE_VALUE && wAttributes != NoColor)
 		SetConsoleTextAttribute(hStdOut, wAttributes);
 }
+
+#endif

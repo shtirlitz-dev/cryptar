@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "cryptar.h"
 #include "Tar.h"
 #include "ntfs_streams.h"
 #include "CommonFunc.h"
@@ -594,7 +595,7 @@ array<uint8_t, 16> digest_to_key(const array<uint8_t, 20>& digest)
 
 
 
-int Tar(int argc, TCHAR** argv)
+int Tar(int argc, Char** argv)
 {
 	if (argc < 3 || _tcscmp(argv[2], L"/?") == 0)
 		return ShowHelpTar(filesystem::path(argv[0]).filename());
@@ -836,7 +837,7 @@ bool ExtractItem(ITarReader* reader, const Options& options, const filesystem::p
 }
 
 
-int Untar(int argc, TCHAR** argv)
+int Untar(int argc, Char** argv)
 {
 	if (argc < 3 || _tcscmp(argv[2], L"/?") == 0)
 		return ShowHelpUntar(filesystem::path(argv[0]).filename());

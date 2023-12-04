@@ -17,5 +17,5 @@
 #pragma once
 
 
-int Tar(int argc, TCHAR **argv);
-int Untar(int argc, TCHAR **argv);
+int Tar(int argc, Char** argv);
+int Untar(int argc, Char** argv);

@@ -1,7 +1,14 @@
 #pragma once
 
+enum {
+	FG_RED,  // FOREGROUND_RED
+
+	STD_ERR, // STD_ERROR_HANDLE
+};
+
 class ConsoleColor
 {
+#if 0
 	static const WORD NoColor = 0xFFFF;
 public:
 	ConsoleColor(WORD wAttributes = NoColor, DWORD nStdHandle = STD_OUTPUT_HANDLE);
@@ -10,5 +17,9 @@ public:
 protected:
 	HANDLE hStdOut;
 	WORD wDefault = NoColor;
+#else
+public:
+	ConsoleColor(...) {}
+#endif
 };
 

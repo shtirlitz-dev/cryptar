@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="aes.h" />
     <ClInclude Include="CommonFunc.h" />
+    <ClInclude Include="cryptar.h" />
     <ClInclude Include="ConsoleColor.h" />
     <ClInclude Include="CoroGenerator.h" />
     <ClInclude Include="FileSimple.h" />

@@ -14,6 +14,7 @@
 ***********************************************************************/
 
 #include "pch.h"
+#include "cryptar.h"
 #include <iostream>
 #include <fcntl.h>
 #include <io.h>
@@ -28,7 +29,7 @@
 
 using namespace std;
 
-int wmain2(int argc, TCHAR **argv) // main(int argc, char **argv)
+int wmain2(int argc, TCHAR** argv) // main(int argc, char **argv)
 {
 	//int test_aes();
 	//return test_aes();
@@ -66,10 +67,10 @@ int wmain2(int argc, TCHAR **argv) // main(int argc, char **argv)
 	catch (MyException& e)
 	{
 		ConsoleColor cc(FOREGROUND_RED, STD_ERROR_HANDLE);
-		wstring msg = e.msg;
-		if (auto pos = msg.find(L"<err>"); pos != wstring::npos)
+		String msg = e.msg;
+		if (auto pos = msg.find(L"<err>"); pos != String::npos)
 			msg = msg.substr(0, pos) + GetErrorMessage(e.dwError) + msg.substr(pos + 5);
-		if (auto pos = msg.find(L"<path>"); pos != wstring::npos)
+		if (auto pos = msg.find(L"<path>"); pos != String::npos)
 			msg = msg.substr(0, pos) + e.path + msg.substr(pos + 6);
 		wcerr << msg << endl;
 	}
@@ -117,7 +118,7 @@ void PrintInfo(const std::filesystem::directory_entry& item)
 	FileTimeToLocalFileTime(pft, pft);
 	FileTimeToSystemTime(pft, &st);
 	TCHAR stime[40];
-	swprintf_s(stime, L"%02u.%02u.%04u  %02u:%02u", st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute );
+	swprintf_s(stime, L"%02u.%02u.%04u  %02u:%02u", st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute);
 
 	wcout << stime << L" " << setw(17);
 	if (item.is_regular_file())
@@ -212,20 +213,3 @@ void ShowUsage(filesystem::path filename)
 	wcout << L"      <dir> is some directory name, including . or ..\n";
 }
 
-wstring GetErrorMessage(DWORD dw)
-{
-	LPVOID lpMsgBuf;
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		dw,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR)&lpMsgBuf,
-		0, NULL);
-
-	wstring ret = (LPTSTR)lpMsgBuf;
-	LocalFree(lpMsgBuf);
-	return ret;
-}
